@@ -269,42 +269,38 @@
       return wish;
     }
 
-    // สร้างภาพพื้นหลังแบบ Gradient วิวธรรมชาติรองรับเมื่อเกิดข้อผิดพลาด
+    // สร้างฉากธรรมชาติสำรองแบบ Canvas กรณีการเชื่อมต่อหลุด
     function generateGradientBackground() {
       const canvas = document.createElement('canvas');
       canvas.width = 720;
       canvas.height = 1280;
       const ctx = canvas.getContext('2d');
-      
-      const colorPairs = [
-        ['#0f2027', '#203a43', '#2c5364'],
-        ['#134e5e', '#71b280'],
-        ['#2b5876', '#4e4376'],
-        ['#1e3c72', '#2a5298'],
-        ['#000428', '#004e92']
-      ];
-      
-      const pair = colorPairs[Math.floor(Math.random() * colorPairs.length)];
       const grad = ctx.createLinearGradient(0, 0, 0, 1280);
-      
-      if(pair.length === 3) {
-        grad.addColorStop(0, pair[0]);
-        grad.addColorStop(0.5, pair[1]);
-        grad.addColorStop(1, pair[2]);
-      } else {
-        grad.addColorStop(0, pair[0]);
-        grad.addColorStop(1, pair[1]);
-      }
-      
+      grad.addColorStop(0, '#0f2027');
+      grad.addColorStop(0.5, '#203a43');
+      grad.addColorStop(1, '#2c5364');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 720, 1280);
       return canvas.toDataURL('image/png');
     }
 
-    function generatePostcard() {
+    // ฟังก์ชันดึงภาพแบบ Base64 แก้ปัญหา CORS บล็อกถาวร
+    async function fetchImageAsBase64(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    async function generatePostcard() {
       const btnGen = document.getElementById('btnGen');
       btnGen.disabled = true;
-      btnGen.innerText = "⏳ โหลดรูปภาพ...";
+      btnGen.innerText = "⏳ กำลังดึงรูป...";
 
       const dayIndex = new Date().getDay();
       document.getElementById('dayGreeting').innerText = `สวัสดี${dayNames[dayIndex]}`;
@@ -312,26 +308,27 @@
 
       const imgElement = document.getElementById('bgImg');
       
-      // สุ่ม ID ภาพธรรมชาติเพื่อป้องกันภาพดับและเปลี่ยนรูปได้เรื่อยๆ
-      const randomImageId = Math.floor(Math.random() * 1000) + 1;
-      const imageUrl = `https://picsum.photos/id/${randomImageId}/720/1280`;
+      // สุ่ม Seed รูปภาพธรรมชาติจาก Unsplash Direct Stream
+      const randomSeed = Math.floor(Math.random() * 100000);
+      const imageUrl = `https://images.unsplash.com/photo-1507525428034-b723cf961d3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1MDcxMzJ8MHwxfHNlYXJjaHwxfHxuYXR1cmV8ZW58MHx8fHwxNjg1MDAwMDAw&ixlib=rb-4.0.3&q=80&w=720&sig=${randomSeed}`;
 
-      imgElement.onload = () => {
+      try {
+        // แปลงรูปเป็น Data URL (Base64) ในเครื่องก่อนนำไปแสดงผล
+        const base64Data = await fetchImageAsBase64(imageUrl);
+        imgElement.src = base64Data;
+      } catch (err) {
+        // หากเน็ตช้าหรือมีปัญหา ให้ดึงจากสำรองที่ปลอด CORS แน่นอน
+        try {
+          const fallbackUrl = `https://picsum.photos/720/1280?blur=1&random=${randomSeed}`;
+          const base64Fallback = await fetchImageAsBase64(fallbackUrl);
+          imgElement.src = base64Fallback;
+        } catch (e) {
+          imgElement.src = generateGradientBackground();
+        }
+      } finally {
         btnGen.disabled = false;
         btnGen.innerText = "🔄 สุ่มใหม่";
-      };
-
-      imgElement.onerror = () => {
-        // ถ้าดึง ID นั้นไม่เจอ ให้สลับใช้ภาพแบบ Random ทันที
-        imgElement.onerror = () => {
-          imgElement.src = generateGradientBackground();
-          btnGen.disabled = false;
-          btnGen.innerText = "🔄 สุ่มใหม่";
-        };
-        imgElement.src = `https://picsum.photos/720/1280?random=${Math.random()}`;
-      };
-
-      imgElement.src = imageUrl;
+      }
     }
 
     async function copyPostcard() {
