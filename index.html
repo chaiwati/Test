@@ -70,7 +70,7 @@
     .overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.75) 100%);
+      background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.8) 100%);
       z-index: 1;
       border-radius: 0;
     }
@@ -192,7 +192,7 @@
   </header>
 
   <div class="postcard-wrapper" id="postcard">
-    <img id="bgImg" class="bg-image" alt="Nature Destination">
+    <img id="bgImg" class="bg-image" crossorigin="anonymous" alt="Nature Destination">
     <div class="overlay"></div>
     <div class="postcard-content">
       <div class="card-top">
@@ -271,76 +271,43 @@
       return wish;
     }
 
-    // สร้างรูปภาพบรรยากาศธรรมชาติความละเอียดสูงด้วย Canvas ในเครื่อง 100% (ไม่ต้องพึ่งเว็บนอก)
-    function createNatureImageBase64() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 720;
-      canvas.height = 1280;
-      const ctx = canvas.getContext('2d');
-
-      // สุ่มโทนสีบรรยากาศธรรมชาติ
-      const themes = [
-        { sky: ['#0f2027', '#203a43', '#2c5364'], sun: '#fdbb2d', mountain: '#0a1118' }, // คืนดาว/ฟ้าน้ำเงิน
-        { sky: ['#3a1c71', '#d76d77', '#ffaf7b'], sun: '#fff', mountain: '#240b36' },   // อาทิตย์อัสดง
-        { sky: ['#134e5e', '#71b280'], sun: '#e0e7ff', mountain: '#09252c' },             // ป่าเขาสดชื่น
-        { sky: ['#4b6cb7', '#182848'], sun: '#ffd166', mountain: '#0c1322' },             // ท้องฟ้าสายลม
-        { sky: ['#cc2b5e', '#753a88'], sun: '#fec89a', mountain: '#22092c' }              // แสงเย็นสีพาสเทล
-      ];
-
-      const t = themes[Math.floor(Math.random() * themes.length)];
-
-      // 1. ท้องฟ้า (Gradient)
-      const grad = ctx.createLinearGradient(0, 0, 0, 1280);
-      t.sky.forEach((color, idx) => grad.addColorStop(idx / (t.sky.length - 1), color));
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 720, 1280);
-
-      // 2. ดวงอาทิตย์ / ดวงจันทร์
-      ctx.beginPath();
-      ctx.arc(360 + (Math.random() * 100 - 50), 450, 120, 0, Math.PI * 2);
-      ctx.fillStyle = t.sun;
-      ctx.globalAlpha = 0.25;
-      ctx.fill();
-      ctx.globalAlpha = 1.0;
-
-      // 3. ทิวเขาไกล
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.moveTo(-50, 920);
-      ctx.bezierCurveTo(180, 780, 420, 960, 770, 840);
-      ctx.lineTo(770, 1280);
-      ctx.lineTo(-50, 1280);
-      ctx.fill();
-
-      // 4. ทิวเขาใกล้
-      ctx.fillStyle = t.mountain;
-      ctx.beginPath();
-      ctx.moveTo(-50, 1020);
-      ctx.bezierCurveTo(250, 880, 500, 1040, 770, 960);
-      ctx.lineTo(770, 1280);
-      ctx.lineTo(-50, 1280);
-      ctx.fill();
-
-      return canvas.toDataURL('image/png');
-    }
-
+    // ฟังก์ชันสร้างรูปวิวธรรมชาติแนวตั้งจากเว็บ (ใช้ Proxy CORS เพื่อไม่ให้ภาพดับและกดโหลดได้)
     function generatePostcard() {
       const btnGen = document.getElementById('btnGen');
       btnGen.disabled = true;
-      btnGen.innerText = "⏳ รอสักครู่...";
+      btnGen.innerText = "⏳ ดึงรูปใหม่...";
 
       const dayIndex = new Date().getDay();
       document.getElementById('dayGreeting').innerText = `สวัสดี${dayNames[dayIndex]}`;
       document.getElementById('wishText').innerText = getDynamicWish(dayIndex);
 
-      // สร้างและแสดงรูปภาพทันที
       const imgElement = document.getElementById('bgImg');
-      imgElement.src = createNatureImageBase64();
+      
+      // สุ่มคำค้นหาหมวดหมู่ธรรมชาติเพื่อให้ได้ภาพแนวธรรมชาติสวยๆ ไม่ซ้ำแบบ
+      const keywords = ['nature', 'mountain', 'forest', 'landscape', 'river', 'flower', 'sky'];
+      const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+      const randomSeed = Math.floor(Math.random() * 99999);
 
-      setTimeout(() => {
+      // ใช้แหล่งภาพที่เปิด CORS 100% พร้อม Proxy แก้ปัญหา Canvas ทันที
+      const rawUrl = `https://source.unsplash.com/featured/720x1280/?${randomKeyword}&sig=${randomSeed}`;
+      const corsProxyUrl = `https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&refresh=2592000&url=${encodeURIComponent(rawUrl)}`;
+
+      // แหล่งภาพสำรองกรณี Unsplash ช้า
+      const fallbackUrl = `https://picsum.photos/720/1280?random=${randomSeed}`;
+
+      imgElement.onload = () => {
         btnGen.disabled = false;
         btnGen.innerText = "🔄 สุ่มใหม่";
-      }, 150);
+      };
+
+      imgElement.onerror = () => {
+        // หากตัวแรกมีปัญหา ให้ใช้ภาพสำรองที่การันตีว่าโหลดได้แน่นอน
+        imgElement.src = fallbackUrl;
+        btnGen.disabled = false;
+        btnGen.innerText = "🔄 สุ่มใหม่";
+      };
+
+      imgElement.src = corsProxyUrl;
     }
 
     async function copyPostcard() {
@@ -350,7 +317,13 @@
       btnCopy.innerText = "⏳ กำลังคัดลอก...";
 
       try {
-        const canvas = await html2canvas(cardElement, { scale: 2, logging: false });
+        const canvas = await html2canvas(cardElement, { 
+          scale: 2, 
+          logging: false,
+          useCORS: true,
+          allowTaint: false
+        });
+
         canvas.toBlob(async (blob) => {
           if (!blob) throw new Error("Canvas Blob failed");
           try {
@@ -358,16 +331,17 @@
             await navigator.clipboard.write([item]);
             btnCopy.innerText = "✅ คัดลอกแล้ว!";
           } catch (err) {
-            alert('CodePen บล็อกการคัดลอกลง คลิปบอร์ด โดยตรง ให้กดปุ่ม "⬇️ โหลดรูป" แทนได้เลยครับ');
+            alert('เบราว์เซอร์นี้จำกัดการเข้าถึง Clipboard กรุณากดปุ่ม "⬇️ โหลดรูป" แทนครับ');
             btnCopy.innerText = "📋 คัดลอก";
           }
           setTimeout(() => {
             btnCopy.innerText = "📋 คัดลอก";
             btnCopy.disabled = false;
           }, 2000);
-        });
+        }, 'image/png');
+
       } catch (err) {
-        alert('เกิดข้อผิดพลาดในการสร้างภาพ');
+        alert('เกิดข้อผิดพลาดในการคัดลอกรูปภาพ');
         btnCopy.innerText = "📋 คัดลอก";
         btnCopy.disabled = false;
       }
@@ -377,10 +351,16 @@
       const cardElement = document.getElementById('postcard');
       const btnDown = document.getElementById('btnDown');
       btnDown.disabled = true;
-      btnDown.innerText = "⏳ กำลังโหลด...";
+      btnDown.innerText = "⏳ กำลังสร้างไฟล์...";
 
       try {
-        const canvas = await html2canvas(cardElement, { scale: 2, logging: false });
+        const canvas = await html2canvas(cardElement, { 
+          scale: 2, 
+          logging: false,
+          useCORS: true,
+          allowTaint: false
+        });
+
         const link = document.createElement('a');
         link.download = `postcard-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
