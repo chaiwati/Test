@@ -63,13 +63,13 @@
       height: 100%;
       object-fit: cover;
       z-index: 0;
-      transition: opacity 0.3s ease-in-out;
+      transition: opacity 0.4s ease-in-out;
     }
 
     .overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.85) 100%);
+      background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.85) 100%);
       z-index: 1;
     }
 
@@ -190,7 +190,7 @@
   </header>
 
   <div class="postcard-wrapper" id="postcard">
-    <img id="bgImg" class="bg-image" alt="Nature Destination">
+    <img id="bgImg" class="bg-image" alt="Nature Destination" crossorigin="anonymous">
     <div class="overlay"></div>
     <div class="postcard-content">
       <div class="card-top">
@@ -199,8 +199,8 @@
       </div>
 
       <div class="card-bottom">
-        <p class="wish-text" id="wishText">เติมพลังกายใจให้เต็มเปี่ยม
-ขอให้มีความสุขตลอดวัน</p>
+        <p class="wish-text" id="wishText">ปล่อยวางเรื่องวุ่นวายในใจ
+เติมรอยยิ้มรับวันหยุดสุดสดใส</p>
       </div>
     </div>
   </div>
@@ -218,39 +218,56 @@
   </div>
 
   <script>
+    // ชุดคำอวยพรเซ็ตใหม่ทั้งหมด
     const wishComponentsByDay = {
-      0: {
-        s1: ["พักผ่อนสบายๆ ในวันอาทิตย์", "เติมพลังกายใจให้เต็มเปี่ยม", "เปิดรับความสุขและรอยยิ้ม", "ชาร์จแบตชีวิตในวันหยุด", "โอบกอดความสงบใจ"],
-        s2: ["ขอให้มีความสุขตลอดวัน", "พบเจอแต่เรื่องราวงดงาม", "สุขใจในทุกช่วงเวลา", "รอยยิ้มแจ่มใสเบิกบาน", "เบาสบายไร้ความกังวล"]
+      0: { // วันอาทิตย์
+        s1: ["ปล่อยวางเรื่องวุ่นวายในใจ", "ให้ธรรมชาติช่วยฮีลใจในวันหยุด", "ตื่นรับแสงแดดยามเช้าอันอบอุ่น", "พักกายพักใจให้หายเหนื่อย", "ดื่มด่ำความสงบในวันสบายๆ"],
+        s2: ["เติมรอยยิ้มรับวันหยุดสุดสดใส", "ขอให้เป็นวันหยุดที่แสนพิเศษ", "พบเจอแต่เรื่องราวอบอุ่นหัวใจ", "เก็บเกี่ยวพลังบวกให้เต็มเปี่ยม", "มีความสุขกับสิ่งเล็กๆ รอบตัว"]
       },
-      1: {
-        s1: ["เริ่มต้นวันจันทร์ด้วยพลังบวก", "เปิดรับโอกาสใหม่ๆ ในชีวิต", "ก้าวแรกของสัปดาห์ราบรื่น", "เริ่มต้นวันใหม่อย่างสดใส", "พร้อมลุยทุกเป้าหมาย"],
-        s2: ["ทำสิ่งใดก็สำเร็จสมปรารถนา", "พบเจอแต่กัลยาณมิตรที่ดี", "ผ่านพ้นทุกงานได้อย่างง่ายดาย", "มีรอยยิ้มและเบิกบานใจ", "ก้าวหน้าและประสบความสำเร็จ"]
+      1: { // วันจันทร์
+        s1: ["เปิดใจรับสัปดาห์ใหม่อย่างสดใส", "พกความมั่นใจมาเต็มร้อย", "ก้าวสู่เป้าหมายด้วยพลังเต็มเปี่ยม", "อรุณสวัสดิ์เช้าวันจันทร์แสนเบิกบาน", "ทุกการเริ่มต้นใหม่ย่อมมีสิ่งดีๆ"],
+        s2: ["ขอให้การงานราบรื่นไร้อุปสรรค", "พบเจอแต่รอยยิ้มและกัลยาณมิตร", "ก้าวหน้าและสำเร็จในทุกสิ่งที่ทำ", "มีแรงบันดาลใจใหม่ๆ ตลอดวัน", "เงินทองไหลมาเทมาไม่ขาดสาย"]
       },
-      2: {
-        s1: ["เติมพลังใจในวันอังคาร", "ขอให้มีสมาธิและไอเดียลื่นไหล", "ก้าวผ่านทุกงานยากสบายใจ", "ใจเบาสบายตลอดทั้งวัน", "สู้ทุกเป้าหมายอย่างมั่นใจ"],
-        s2: ["ทุกภารกิจสำเร็จลุล่วงด้วยดี", "พบเจอแต่ความสุขรอบตัว", "เปลี่ยนความตั้งใจเป็นความสำเร็จ", "ได้รับมิตรภาพที่ดีเสมอ", "เปี่ยมด้วยพลังกายและใจ"]
+      2: { // วันอังคาร
+        s1: ["มุ่งมั่นเดินหน้าต่ออย่างมั่นใจ", "ก้าวผ่านทุก challenge ด้วยรอยยิ้ม", "เติมพลังความสดใสในวันอังคาร", "สู้สุดใจด้วยพลังใจที่เข้มแข็ง", "มองโลกในแง่ดีและมีสติเสมอ"],
+        s2: ["ราบรื่นสมปรารถนาในทุกภารกิจ", "ขอให้โชคดีและได้รับข่าวดีเสมอ", "พบเจอแต่คนดีๆ และสิ่งดีๆ", "ความพยายามนำพาความสำเร็จมาให้", "สุขภาพแข็งแรง สดชื่นตลอดวัน"]
       },
-      3: {
-        s1: ["สดใสกับวันพุธกลางสัปดาห์", "ขอให้การทำงานราบรื่นไร้อุปสรรค", "เติมความหวังและพลังบวก", "ใจเบาสบายและสดชื่น", "ส่งต่อพลังความสุขให้กัน"],
-        s2: ["พบเจอแต่เรื่องราวชวนยิ้ม", "ผ่านพ้นทุกสิ่งได้อย่างราบรื่น", "ได้รับกำลังใจดีๆ เสมอ", "มีจิตใจที่เบิกบานแจ่มใส", "สำเร็จสมความตั้งใจ"]
+      3: { // วันพุธ
+        s1: ["ครึ่งทางของสัปดาห์ยังสดใส", "ผ่อนคลายความเครียด เติมความสุข", "รักษารอยยิ้มและจิตใจที่เบาและสบาย", "เดินหน้าต่อด้วยพลังบวกเปี่ยมล้น", "สวัสดีวันพุธด้วยความเปรมปรีดิ์"],
+        s2: ["ขอให้ชีวิตราบรื่นและมีชีวา", "เจรจาติดต่อสิ่งใดก็สำเร็จลุล่วง", "ได้รับความรักและความเมตตาเสมอ", "มีความสุขกับทุกงานที่ได้ทำ", "สมหวังในทุกสิ่งที่คาดหวังไว้"]
       },
-      4: {
-        s1: ["สดชื่นสดใสในวันพฤหัสบดี", "ทำทุกอย่างด้วยใจเบาสบาย", "ราบรื่นและเรียบง่ายตลอดวัน", "เติมไฟความตั้งใจให้เต็มเปี่ยม", "พร้อมรับสิ่งดีๆ เข้ามา"],
-        s2: ["ก้าวผ่านทุกอุปสรรคอย่างง่ายดาย", "เตรียมพร้อมรับวันหยุดสุดสัปดาห์", "พบเจอแต่ความสงบเรียบง่าย", "มีความสุขในทุกช่วงเวลา", "ยิ้มรับความสำเร็จในงาน"]
+      4: { // วันพฤหัสบดี
+        s1: ["เติมความสดชื่นต้อนรับวันใหม่", "สั่งสมความสำเร็จทีละเล็กละน้อย", "ก้าวอย่างมั่นคงและภาคภูมิใจ", "ใจสงบ เบาสบาย สดใสไร้กังวล", "ส่งต่อกำลังใจดีๆ ให้แก่กัน"],
+        s2: ["ใกล้ถึงวันหยุดพร้อมรอยยิ้ม", "ขอให้โชคลาภและความสุขหลั่งไหลมา", "ก้าวผ่านทุกอุปสรรคได้อย่างง่ายดาย", "ชีวิตเปี่ยมไปด้วยความสงบร่มเย็น", "พบเจอแต่เรื่องชวนยิ้มและอิ่มเอมใจ"]
       },
-      5: {
-        s1: ["หรรษาต้อนรับวันศุกร์", "ทำงานสบายใจไร้ความกังวล", "เสร็จสิ้นภารกิจประจำสัปดาห์", "สดชื่นร่าเริงตลอดทั้งวัน", "ยิ้มรับความสุขในวันศุกร์"],
-        s2: ["พร้อมต้อนรับวันหยุดแสนหวาน", "ผ่อนคลายความเหนื่อยล้าเต็มที่", "มีความสุขที่สุดในเย็นวันนี้", "เบิกบานใจในทุกช่วงเวลา", "เติมเต็มรอยยิ้มอย่างแท้จริง"]
+      5: { // วันศุกร์
+        s1: ["ยิ้มรับวันศุกร์ด้วยความร่าเริง", "เคลียร์งานราบรื่น หัวใจเบาสบาย", "พร้อมต้อนรับความสุขปลายสัปดาห์", "ส่งท้ายสัปดาห์ด้วยพลังเต็มร้อย", "ความเหนื่อยล้ากำลังจะหายไป"],
+        s2: ["เตรียมพร้อมพักผ่อนอย่างเต็มที่", "ขอให้เป็นเย็นวันศุกร์ที่แสนหรรษา", "สมปรารถนาในสิ่งที่ตั้งใจไว้", "มีความสุขและผ่อนคลายอย่างไร้กังวล", "พบเจอแต่รอยยิ้มและมิตรภาพที่ดี"]
       },
-      6: {
-        s1: ["สงบสุขและผ่อนคลายในวันเสาร์", "ใช้เวลากับคนที่รักอย่างคุ้มค่า", "ดื่มด่ำความสุขเรียบง่ายรอบตัว", "ชาร์จพลังชีวิตให้เต็มอิ่ม", "พักผ่อนกายใจแบบไม่เร่งรีบ"],
-        s2: ["และได้ทำในสิ่งที่หัวใจรัก", "พร้อมโอบกอดความสุขรอบตัว", "ขอให้มีความสุขตลอดวันหยุด", "เพลิดเพลินกับเวลาพักผ่อน", "สุขใจอย่างแท้จริงตลอดวัน"]
+      6: { // วันเสาร์
+        s1: ["ใช้วันหยุดให้คุ้มค่าและมีความสุข", "ให้เวลากับตัวเองและคนที่รัก", "พักสายตาและผ่อนคลายสมอง", "ตื่นมาพร้อมความสดชื่นแจ่มใส", "ใช้ชีวิตในจังหวะที่ช้าลงอย่างสุขใจ"],
+        s2: ["ขอให้เป็นวันเสาร์ที่เต็มไปด้วยรอยยิ้ม", "เติมเต็มพลังกายและใจอย่างสมบูรณ์", "เพลิดเพลินกับทุกกิจกรรมที่ชอบ", "ความสุขและมิตรภาพโอบล้อมรอบตัว", "สุขกาย สุขใจ ไร้โรคภัยกล้ำกลาย"]
       }
     };
 
+    const natureImagePool = [
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1511497584788-876761c119ef?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1439853949127-fa647821eba0?auto=format&fit=crop&w=720&q=80",
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=720&q=80"
+    ];
+
     const dayNames = ["วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"];
     let generatedWishHistory = new Set();
+    let lastImageIndex = -1;
 
     function getDynamicWish(dayIndex) {
       const comp = wishComponentsByDay[dayIndex];
@@ -269,66 +286,30 @@
       return wish;
     }
 
-    // สร้างฉากธรรมชาติสำรองแบบ Canvas กรณีการเชื่อมต่อหลุด
-    function generateGradientBackground() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 720;
-      canvas.height = 1280;
-      const ctx = canvas.getContext('2d');
-      const grad = ctx.createLinearGradient(0, 0, 0, 1280);
-      grad.addColorStop(0, '#0f2027');
-      grad.addColorStop(0.5, '#203a43');
-      grad.addColorStop(1, '#2c5364');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 720, 1280);
-      return canvas.toDataURL('image/png');
+    function getRandomImageUrl() {
+      let randomIndex;
+      do {
+        randomIndex = Math.floor(Math.random() * natureImagePool.length);
+      } while (randomIndex === lastImageIndex);
+      
+      lastImageIndex = randomIndex;
+      return natureImagePool[randomIndex];
     }
 
-    // ฟังก์ชันดึงภาพแบบ Base64 แก้ปัญหา CORS บล็อกถาวร
-    async function fetchImageAsBase64(url) {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Network response was not ok');
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
-
-    async function generatePostcard() {
-      const btnGen = document.getElementById('btnGen');
-      btnGen.disabled = true;
-      btnGen.innerText = "⏳ กำลังดึงรูป...";
-
+    function generatePostcard() {
       const dayIndex = new Date().getDay();
       document.getElementById('dayGreeting').innerText = `สวัสดี${dayNames[dayIndex]}`;
       document.getElementById('wishText').innerText = getDynamicWish(dayIndex);
 
       const imgElement = document.getElementById('bgImg');
+      const newImgUrl = getRandomImageUrl();
       
-      // สุ่ม Seed รูปภาพธรรมชาติจาก Unsplash Direct Stream
-      const randomSeed = Math.floor(Math.random() * 100000);
-      const imageUrl = `https://images.unsplash.com/photo-1507525428034-b723cf961d3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1MDcxMzJ8MHwxfHNlYXJjaHwxfHxuYXR1cmV8ZW58MHx8fHwxNjg1MDAwMDAw&ixlib=rb-4.0.3&q=80&w=720&sig=${randomSeed}`;
-
-      try {
-        // แปลงรูปเป็น Data URL (Base64) ในเครื่องก่อนนำไปแสดงผล
-        const base64Data = await fetchImageAsBase64(imageUrl);
-        imgElement.src = base64Data;
-      } catch (err) {
-        // หากเน็ตช้าหรือมีปัญหา ให้ดึงจากสำรองที่ปลอด CORS แน่นอน
-        try {
-          const fallbackUrl = `https://picsum.photos/720/1280?blur=1&random=${randomSeed}`;
-          const base64Fallback = await fetchImageAsBase64(fallbackUrl);
-          imgElement.src = base64Fallback;
-        } catch (e) {
-          imgElement.src = generateGradientBackground();
-        }
-      } finally {
-        btnGen.disabled = false;
-        btnGen.innerText = "🔄 สุ่มใหม่";
-      }
+      const tempImage = new Image();
+      tempImage.crossOrigin = "anonymous";
+      tempImage.onload = () => {
+        imgElement.src = newImgUrl;
+      };
+      tempImage.src = newImgUrl;
     }
 
     async function copyPostcard() {
@@ -342,7 +323,7 @@
           scale: 2, 
           logging: false,
           useCORS: true,
-          allowTaint: true
+          allowTaint: false
         });
 
         canvas.toBlob(async (blob) => {
@@ -379,7 +360,7 @@
           scale: 2, 
           logging: false,
           useCORS: true,
-          allowTaint: true
+          allowTaint: false
         });
 
         const link = document.createElement('a');
