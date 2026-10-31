@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pee & Poop Daily Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Prompt', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Prompt', 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        /* Custom styling for compact date input */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-100 flex flex-col max-w-md mx-auto bg-slate-950 shadow-2xl relative border-x border-slate-800 selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Header -->
+    <header class="p-4 bg-slate-900/90 backdrop-blur-md sticky top-0 z-30 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <span class="text-2xl">📊</span>
+            <div>
+                <h1 class="font-bold text-base text-white leading-tight">Pee & Poop Tracker</h1>
+                <p class="text-xs text-slate-400">บันทึกและสรุปข้อมูลประจำวัน</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-1">
+            <button onclick="exportData()" title="ส่งออกข้อมูล" class="p-2 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fa-solid fa-download"></i>
+            </button>
+            <button onclick="importDataTrigger()" title="นำเข้าข้อมูล" class="p-2 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fa-solid fa-upload"></i>
+            </button>
+            <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
+            <button onclick="clearAllData()" title="ล้างข้อมูลทั้งหมด" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 overflow-y-auto p-2 sm:p-4 pb-28">
+        
+        <!-- Action bar for adding new row -->
+        <div class="mb-3 flex justify-between items-center px-1">
+            <span id="row-count" class="text-xs text-slate-400 font-medium">รายการทั้งหมด: 0 วัน</span>
+            <button onclick="addNewRow()" class="inline-flex items-center space-x-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-md transition active:scale-95">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>เพิ่มวันที่ใหม่</span>
+            </button>
+        </div>
+
+        <!-- Main Tracking Table Container -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900 shadow-xl">
+            <table class="w-full text-center border-collapse text-xs">
+                <thead>
+                    <!-- Header Row 1: Time Intervals -->
+                    <tr class="bg-slate-800/90 text-slate-300 font-semibold border-b border-slate-700">
+                        <th rowspan="2" class="py-2.5 px-2 border-r border-slate-700 w-28 text-white font-bold bg-slate-800">
+                            DATE
+                        </th>
+                        <th colspan="2" class="py-1.5 px-1 border-r border-slate-700 bg-amber-500/10 text-amber-300">
+                            MORNING<br>
+                            <span class="text-[10px] font-normal text-amber-400/80">06:00 - 18:00</span>
+                        </th>
+                        <th colspan="2" class="py-1.5 px-1 bg-indigo-500/10 text-indigo-300">
+                            AFTERNOON<br>
+                            <span class="text-[10px] font-normal text-indigo-400/80">18:00 - 06:00</span>
+                        </th>
+                    </tr>
+                    <!-- Header Row 2: Pee & Poop -->
+                    <tr class="bg-slate-800/70 text-slate-300 font-medium border-b border-slate-700">
+                        <th class="py-1.5 px-1 border-r border-slate-700/60 w-[18%] text-amber-200">PEE 💧</th>
+                        <th class="py-1.5 px-1 border-r border-slate-700 w-[18%] text-amber-400">POOP 💩</th>
+                        <th class="py-1.5 px-1 border-r border-slate-700/60 w-[18%] text-indigo-200">PEE 💧</th>
+                        <th class="py-1.5 px-1 w-[18%] text-indigo-400">POOP 💩</th>
+                    </tr>
+                </thead>
+                <tbody id="tracker-tbody" class="divide-y divide-slate-800/80">
+                    <!-- Dynamic Data Rows will be rendered here -->
+                </tbody>
+                <tfoot>
+                    <!-- SUM / AVERAGE Row -->
+                    <tr class="bg-slate-800/95 font-bold border-t-2 border-slate-700 text-white">
+                        <td class="py-3 px-2 border-r border-slate-700 text-left bg-slate-900/80">
+                            <div class="text-xs text-indigo-400">SUM / AVG</div>
+                            <div class="text-[9px] text-slate-400 font-normal">ค่าเฉลี่ยต่อวัน</div>
+                        </td>
+                        <td class="py-2 px-1 border-r border-slate-700/70 bg-amber-500/5">
+                            <span id="avg-morning-pee" class="text-amber-300 font-semibold">0.0</span>
+                        </td>
+                        <td class="py-2 px-1 border-r border-slate-700 bg-amber-500/5">
+                            <span id="avg-morning-poop" class="text-amber-400 font-semibold">0.0</span>
+                        </td>
+                        <td class="py-2 px-1 border-r border-slate-700/70 bg-indigo-500/5">
+                            <span id="avg-afternoon-pee" class="text-indigo-300 font-semibold">0.0</span>
+                        </td>
+                        <td class="py-2 px-1 bg-indigo-500/5">
+                            <span id="avg-afternoon-poop" class="text-indigo-400 font-semibold">0.0</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Empty state message -->
+        <div id="empty-state" class="hidden text-center py-12 px-4">
+            <div class="text-4xl mb-3">📝</div>
+            <p class="text-sm font-medium text-slate-300">ยังไม่มีข้อมูลการบันทึก</p>
+            <p class="text-xs text-slate-500 mt-1">กดปุ่ม "เพิ่มวันที่ใหม่" ด้านบนเพื่อเริ่มบันทึก</p>
+        </div>
+
+    </main>
+
+    <!-- Bottom Sticky Controls & Quick Add Button -->
+    <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-slate-950/90 backdrop-blur-lg border-t border-slate-800/80 z-20">
+        <button onclick="addNewRow()" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-calendar-plus text-base"></i>
+            <span class="text-sm">เพิ่มรายการวันใหม่</span>
+        </button>
+    </div>
+
+    <!-- Notification Toast Modal -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-xl text-xs shadow-xl border border-slate-700 flex items-center space-x-2 opacity-0 pointer-events-none transition-all duration-300 z-50">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-sky-400"></i>
+        <span id="toast-message">แจ้งเตือน</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        const STORAGE_KEY = 'pee_poop_tracker_data_v1';
+        let records = [];
+
+        // Load data on start
+        window.addEventListener('DOMContentLoaded', () => {
+            loadRecords();
+            if (records.length === 0) {
+                // Add today's date by default if empty
+                addNewRow(getTodayString());
+            } else {
+                renderTable();
+            }
+        });
+
+        // Get today date formatted as YYYY-MM-DD
+        function getTodayString() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Load saved local storage data
+        function loadRecords() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                records = data ? JSON.parse(data) : [];
+            } catch (e) {
+                console.error("Could not load storage data", e);
+                records = [];
+            }
+        }
+
+        // Save records to LocalStorage & calculate averages
+        function saveRecords() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            } catch (e) {
+                console.error("Could not save to localStorage", e);
+            }
+            calculateAverages();
+            updateRowCount();
+        }
+
+        // Add a new row to records
+        function addNewRow(customDate = null) {
+            let dateVal = customDate || getTodayString();
+            
+            // Check for unique ID
+            const newRecord = {
+                id: Date.now().toString(),
+                date: dateVal,
+                morningPee: 0,
+                morningPoop: 0,
+                afternoonPee: 0,
+                afternoonPoop: 0
+            };
+
+            records.unshift(newRecord); // Place newest at top
+            saveRecords();
+            renderTable();
+            showToast("เพิ่มวันที่ใหม่เรียบร้อยแล้ว", "success");
+        }
+
+        // Delete a row
+        function deleteRow(id) {
+            records = records.filter(r => r.id !== id);
+            saveRecords();
+            renderTable();
+            showToast("ลบรายการแล้ว", "info");
+        }
+
+        // Update count for a specific field
+        function updateCount(id, field, delta) {
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+
+            record[field] = Math.max(0, (record[field] || 0) + delta);
+            
+            // Update displayed counter dynamically without re-rendering entire table for smoothness
+            const counterEl = document.getElementById(`count-${id}-${field}`);
+            if (counterEl) {
+                counterEl.textContent = record[field];
+                // Subtle animation trigger
+                counterEl.classList.add('scale-125', 'text-sky-400');
+                setTimeout(() => {
+                    counterEl.classList.remove('scale-125', 'text-sky-400');
+                }, 150);
+            }
+
+            saveRecords();
+        }
+
+        // Update Date for a record
+        function updateDate(id, newDate) {
+            const record = records.find(r => r.id === id);
+            if (record) {
+                record.date = newDate;
+                saveRecords();
+            }
+        }
+
+        // Calculate Average for all columns
+        function calculateAverages() {
+            const total = records.length;
+            const avgMornPeeEl = document.getElementById('avg-morning-pee');
+            const avgMornPoopEl = document.getElementById('avg-morning-poop');
+            const avgAftPeeEl = document.getElementById('avg-afternoon-pee');
+            const avgAftPoopEl = document.getElementById('avg-afternoon-poop');
+
+            if (total === 0) {
+                avgMornPeeEl.textContent = '0.0';
+                avgMornPoopEl.textContent = '0.0';
+                avgAftPeeEl.textContent = '0.0';
+                avgAftPoopEl.textContent = '0.0';
+                return;
+            }
+
+            const sums = records.reduce((acc, r) => {
+                acc.mPee += r.morningPee || 0;
+                acc.mPoop += r.morningPoop || 0;
+                acc.aPee += r.afternoonPee || 0;
+                acc.aPoop += r.afternoonPoop || 0;
+                return acc;
+            }, { mPee: 0, mPoop: 0, aPee: 0, aPoop: 0 });
+
+            avgMornPeeEl.textContent = (sums.mPee / total).toFixed(1);
+            avgMornPoopEl.textContent = (sums.mPoop / total).toFixed(1);
+            avgAftPeeEl.textContent = (sums.aPee / total).toFixed(1);
+            avgAftPoopEl.textContent = (sums.aPoop / total).toFixed(1);
+        }
+
+        // Update Row Counter Header
+        function updateRowCount() {
+            const rowCountEl = document.getElementById('row-count');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (rowCountEl) {
+                rowCountEl.textContent = `รายการทั้งหมด: ${records.length} วัน`;
+            }
+            if (emptyState) {
+                if (records.length === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+            }
+        }
+
+        // Render table DOM
+        function renderTable() {
+            const tbody = document.getElementById('tracker-tbody');
+            tbody.innerHTML = '';
+
+            records.forEach((row) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors';
+
+                tr.innerHTML = `
+                    <!-- Date Input & Delete Column -->
+                    <td class="py-2 px-1 border-r border-slate-800 text-left bg-slate-900/60">
+                        <div class="flex items-center space-x-1">
+                            <button onclick="deleteRow('${row.id}')" class="text-slate-600 hover:text-rose-400 p-1 transition" title="ลบวันนี้">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                            <input type="date" value="${row.date}" onchange="updateDate('${row.id}', this.value)" 
+                                class="bg-slate-800 text-slate-200 border border-slate-700/80 rounded px-1 py-1 text-[11px] w-full focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </td>
+
+                    <!-- Morning Pee -->
+                    <td class="py-2 px-0.5 border-r border-slate-800/80">
+                        ${renderControlCell(row.id, 'morningPee', row.morningPee, 'red')}
+                    </td>
+
+                    <!-- Morning Poop -->
+                    <td class="py-2 px-0.5 border-r border-slate-800">
+                        ${renderControlCell(row.id, 'morningPoop', row.morningPoop, 'green')}
+                    </td>
+
+                    <!-- Afternoon Pee -->
+                    <td class="py-2 px-0.5 border-r border-slate-800/80">
+                        ${renderControlCell(row.id, 'afternoonPee', row.afternoonPee, 'red')}
+                    </td>
+
+                    <!-- Afternoon Poop -->
+                    <td class="py-2 px-0.5">
+                        ${renderControlCell(row.id, 'afternoonPoop', row.afternoonPoop, 'green')}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            calculateAverages();
+            updateRowCount();
+        }
+
+        // Generate cell markup matching - + X layout specs
+        function renderControlCell(id, field, value, themeColor) {
+            return `
+                <div class="flex items-center justify-center space-x-1">
+                    <button onclick="updateCount('${id}', '${field}', -1)" 
+                        class="w-6 h-6 rounded bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold flex items-center justify-center text-xs shadow-sm transition active:scale-90">
+                        -
+                    </button>
+                    <button onclick="updateCount('${id}', '${field}', 1)" 
+                        class="w-6 h-6 rounded bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold flex items-center justify-center text-xs shadow-sm transition active:scale-90">
+                        +
+                    </button>
+                    <span id="count-${id}-${field}" class="w-4 text-center font-bold text-xs text-slate-100 transition-all duration-150 inline-block">
+                        ${value}
+                    </span>
+                </div>
+            `;
+        }
+
+        // Export data to JSON file
+        function exportData() {
+            if (records.length === 0) {
+                showToast("ไม่มีข้อมูลสำหรับส่งออก", "error");
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `pee_poop_tracker_${getTodayString()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("ส่งออกข้อมูลสำเร็จ", "success");
+        }
+
+        // Trigger file input
+        function importDataTrigger() {
+            document.getElementById('import-file').click();
+        }
+
+        // Import data from JSON file
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedRecords = JSON.parse(e.target.result);
+                    if (Array.isArray(importedRecords)) {
+                        records = importedRecords;
+                        saveRecords();
+                        renderTable();
+                        showToast("นำเข้าข้อมูลสำเร็จแล้ว", "success");
+                    } else {
+                        showToast("รูปแบบไฟล์ ไม่ถูกต้อง", "error");
+                    }
+                } catch (err) {
+                    showToast("ไม่สามารถอ่านไฟล์ได้", "error");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input
+        }
+
+        // Clear all data with confirmation
+        function clearAllData() {
+            if (records.length === 0) return;
+            
+            // Custom Modal substitute / confirmation
+            if (window.confirm("คุณต้องการลบข้อมูลทั้งหมดใช่หรือไม่?")) {
+                records = [];
+                saveRecords();
+                renderTable();
+                showToast("ล้างข้อมูลทั้งหมดเรียบร้อย", "info");
+            }
+        }
+
+        // Show Toast Notification
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.textContent = message;
+
+            if (type === 'success') {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
+            } else if (type === 'error') {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-rose-400";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-info text-sky-400";
+            }
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
